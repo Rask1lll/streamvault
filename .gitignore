@@ -1,0 +1,22 @@
+# Django
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+
+# Environments
+venv/
+.venv/
+
+# Uploads and media
+/media/
+resource/uploads/
+resource/chunks/
+
+# System files
+.DS_Store
+.idea/
+.vscode/
+
+# Logs
+*.log
