@@ -147,17 +147,14 @@ class FolderViewByTokenAPIView(APIView):
         })
 
 
+# views.py
 class FolderUpdateAPIView(APIView):
     permission_classes = [IsAdminOrSuperUserRole]
 
-    """Переименование или перемещение папки по токену"""
-    def patch(self, request):
-        token = request.data.get("token")
-        if not token:
-            return Response({"error": "Token is required"}, status=400)
-
+    """Переименование или перемещение папки по PK"""
+    def patch(self, request, pk):
         try:
-            folder = Folder.objects.get(token=token)
+            folder = Folder.objects.get(pk=pk)
         except Folder.DoesNotExist:
             return Response({"error": "Folder not found"}, status=404)
 
