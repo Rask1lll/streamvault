@@ -59,6 +59,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 APPEND_SLASH = False
 CORS_ALLOWED_ORIGINS = [
     "http://217.16.19.200",
+    "http://localhost:3000",
 ]
 
 MIDDLEWARE = [
@@ -146,8 +147,6 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.AllowAny",
     )
 }
-
-
 
 
 SIMPLE_JWT = {
