@@ -7,6 +7,8 @@ __pycache__/
 # Environments
 venv/
 .venv/
+db.sqlite3
+*.sqlite3
 
 # Uploads and media
 /media/
