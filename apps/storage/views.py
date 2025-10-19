@@ -17,6 +17,7 @@ from rest_framework import status, permissions
 from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 
 
 User = get_user_model()
@@ -53,8 +54,17 @@ class LoginView(APIView):
         if serializer.is_valid():
             user = serializer.validated_data["user"]
             tokens = get_tokens_for_user(user)
+
+            # 🔹 получаем токен корневой папки (parent=None)
+            root_folder = Folder.objects.filter(parent__isnull=True).first()
+            root_folder_token = root_folder.token if root_folder else None
+
             return Response(
-                {"user": UserSerializer(user).data, "tokens": tokens},
+                {
+                    "user": UserSerializer(user).data,
+                    "tokens": tokens,
+                    "root_folder_token": root_folder_token  # <-- добавлено
+                },
                 status=status.HTTP_200_OK,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -441,3 +451,44 @@ class FileMoveAPIView(APIView):
             "message": f"Файл {file.name} перемещён в папку {folder.name}",
             "file": FileSerializer(file).data
         })
+
+
+# 🔹 Редактирование файла
+class FileUpdateAPIView(APIView):
+    def put(self, request, pk):
+        file_obj = get_object_or_404(File, pk=pk)
+        serializer = FileSerializer(file_obj, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# 🔹 Удаление файла
+class FileDeleteAPIView(APIView):
+    def delete(self, request, pk):
+        file_obj = get_object_or_404(File, pk=pk)
+        file_obj.file.delete(save=False)  # удаляем физический файл
+        file_obj.delete()
+        return Response({"message": "Файл успешно удалён"}, status=status.HTTP_200_OK)
+
+
+# 🔹 Удаление папки вместе со всеми файлами и под-папками
+class FolderDeleteAPIView(APIView):
+    def delete(self, request, pk):
+        folder = get_object_or_404(Folder, pk=pk)
+
+        # рекурсивное удаление всех файлов и подпапок
+        def delete_folder_recursive(f):
+            # удаляем все файлы
+            for file_obj in f.files.all():
+                file_obj.file.delete(save=False)
+                file_obj.delete()
+            # рекурсивно удаляем подпапки
+            for subfolder in f.subfolders.all():
+                delete_folder_recursive(subfolder)
+            # удаляем саму папку
+            f.delete()
+
+        delete_folder_recursive(folder)
+        return Response({"message": "Папка и все вложения успешно удалены"}, status=status.HTTP_200_OK)
