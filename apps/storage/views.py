@@ -455,6 +455,8 @@ class FileMoveAPIView(APIView):
 
 # 🔹 Редактирование файла
 class FileUpdateAPIView(APIView):
+    permission_classes = [IsAdminOrSuperUserRole]
+
     def put(self, request, pk):
         file_obj = get_object_or_404(File, pk=pk)
         serializer = FileSerializer(file_obj, data=request.data, partial=True)
@@ -466,6 +468,8 @@ class FileUpdateAPIView(APIView):
 
 # 🔹 Удаление файла
 class FileDeleteAPIView(APIView):
+    permission_classes = [IsAdminOrSuperUserRole]
+
     def delete(self, request, pk):
         file_obj = get_object_or_404(File, pk=pk)
         file_obj.file.delete(save=False)  # удаляем физический файл
@@ -475,6 +479,8 @@ class FileDeleteAPIView(APIView):
 
 # 🔹 Удаление папки вместе со всеми файлами и под-папками
 class FolderDeleteAPIView(APIView):
+    permission_classes = [IsAdminOrSuperUserRole]
+
     def delete(self, request, pk):
         folder = get_object_or_404(Folder, pk=pk)
 
