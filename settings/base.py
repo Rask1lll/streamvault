@@ -38,6 +38,7 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 DJANGO_LIBRARY = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -173,8 +174,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'resource')
 MEDIA_URL = '/resource/'
 
 # settings.py
-DATA_UPLOAD_MAX_MEMORY_SIZE = 314572800     # 300 МБ (в байтах)
-FILE_UPLOAD_MAX_MEMORY_SIZE = 314572800
+DATA_UPLOAD_MAX_MEMORY_SIZE = 814572800     # 300 МБ (в байтах)
+FILE_UPLOAD_MAX_MEMORY_SIZE = 814572800
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
