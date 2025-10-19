@@ -15,6 +15,7 @@ import sys
 import os
 from .conf import *
 from datetime import timedelta
+from corsheaders.defaults import default_headers
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -60,6 +61,10 @@ APPEND_SLASH = False
 CORS_ALLOWED_ORIGINS = [
     "http://217.16.19.200",
     "http://localhost:3000",
+]
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "X-Upload-ID",
+    "X-Chunk-Index",
 ]
 
 MIDDLEWARE = [
