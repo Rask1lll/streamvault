@@ -297,6 +297,7 @@ class ChunkCompleteAPIView(APIView):
     def post(self, request):
         upload_id = request.data.get("upload_id")
         file_name = request.data.get("file_name", "merged_file.bin")
+        folder_id = request.data.get("folder_id")  # новый параметр
 
         if not upload_id:
             return JsonResponse({"error": "upload_id обязателен"}, status=400)
@@ -304,6 +305,13 @@ class ChunkCompleteAPIView(APIView):
         session = FileUploadSession.objects.filter(upload_id=upload_id, is_complete=False).first()
         if not session:
             return JsonResponse({"error": "Сессия не найдена или уже завершена"}, status=404)
+
+        # 🔹 Если указан folder_id, получаем папку
+        folder = session.folder
+        if folder_id:
+            folder = Folder.objects.filter(id=folder_id).first()
+            if not folder:
+                return JsonResponse({"error": "Папка с таким UUID не найдена"}, status=404)
 
         upload_dir = os.path.join(settings.MEDIA_ROOT, "temp_uploads", upload_id)
         if not os.path.exists(upload_dir):
@@ -349,7 +357,7 @@ class ChunkCompleteAPIView(APIView):
 
         # 🔹 Создание записи в модели File
         file_obj = File.objects.create(
-            folder=session.folder,
+            folder=folder,
             name=file_name,
             file=os.path.relpath(final_path, settings.MEDIA_ROOT),
             file_type=file_type,
@@ -365,6 +373,7 @@ class ChunkCompleteAPIView(APIView):
             "file_id": str(file_obj.id),
             "file_type": file_type,
             "file_url": f"/media/{file_obj.file}",
+            "folder_id": str(folder.id) if folder else None
         })
 
 
