@@ -139,10 +139,15 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         # опционально: "rest_framework.authentication.SessionAuthentication",
     ),
+    # "DEFAULT_PERMISSION_CLASSES": (
+    #     "rest_framework.permissions.IsAuthenticated",  # можно переопределять вьюхами
+    # )
     "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",  # можно переопределять вьюхами
+        "rest_framework.permissions.AllowAny",
     )
 }
+
+
 
 
 SIMPLE_JWT = {
