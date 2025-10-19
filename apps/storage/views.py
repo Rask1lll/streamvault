@@ -507,3 +507,15 @@ class FolderDeleteAPIView(APIView):
 
         delete_folder_recursive(folder)
         return Response({"message": "Папка и все вложения успешно удалены"}, status=status.HTTP_200_OK)
+
+
+class RootFoldersAPIView(APIView):
+    """
+    Получение всех папок верхнего уровня (parent = null)
+    """
+    permission_classes = [IsAdminOrSuperUserRole]  # если нужно ограничение
+
+    def get(self, request):
+        root_folders = Folder.objects.filter(parent__isnull=True)
+        serializer = FolderSerializer(root_folders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

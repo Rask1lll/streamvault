@@ -3,7 +3,7 @@ from .views import (
     ChunkInitAPIView, ChunkUploadAPIView, ChunkCompleteAPIView, FolderCreateAPIView, FolderUpdateAPIView,
     FolderViewByTokenAPIView, FileViewByTokenAPIView, FileReplaceAPIView, QRCodeAPIView,
     FileStreamAPIView, FileMoveAPIView, RegisterView, LoginView, UserDetailView, FileUpdateAPIView,
-    FileDeleteAPIView, FolderDeleteAPIView
+    FileDeleteAPIView, FolderDeleteAPIView, RootFoldersAPIView
 )
 
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
@@ -44,9 +44,11 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
 
-
     path("files/<uuid:pk>/update/", FileUpdateAPIView.as_view(), name="file-update"),
     path("files/<uuid:pk>/delete/", FileDeleteAPIView.as_view(), name="file-delete"),
     path("folders/<uuid:pk>/update/", FolderUpdateAPIView.as_view(), name="folder-update"),
     path("folders/<uuid:pk>/delete/", FolderDeleteAPIView.as_view(), name="folder-delete"),
+
+    path("api/v4/folders_root/", RootFoldersAPIView.as_view(), name="folders-root"),
+
 ]
