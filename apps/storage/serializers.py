@@ -5,7 +5,26 @@ from django.contrib.auth import authenticate, get_user_model
 User = get_user_model()
 
 
+# serializers.py
+class FileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = File
+        fields = [
+            'id',
+            'name',
+            'token',
+            'file',
+            'file_type',
+            'size',
+            'created_at',
+            'updated_at',
+        ]
+
+
 class FolderSerializer(serializers.ModelSerializer):
+    subfolders = serializers.SerializerMethodField()
+    files = FileSerializer(many=True, read_only=True)
+
     class Meta:
         model = Folder
         fields = [
@@ -15,23 +34,15 @@ class FolderSerializer(serializers.ModelSerializer):
             'parent',
             'created_at',
             'updated_at',
+            'subfolders',
+            'files',
         ]
 
-
-class FileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = File
-        fields = [
-            'id',
-            'name',
-            'token',
-            'file',
-            'folder',
-            'file_type',
-            'size',
-            'created_at',
-            'updated_at',
-        ]
+    def get_subfolders(self, obj):
+        # Рекурсивная сериализация всех под-папок
+        subfolders = obj.subfolders.all()
+        serializer = FolderSerializer(subfolders, many=True)
+        return serializer.data
 
 
 class RoleSerializer(serializers.ModelSerializer):

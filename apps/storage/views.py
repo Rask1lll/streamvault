@@ -509,13 +509,15 @@ class FolderDeleteAPIView(APIView):
         return Response({"message": "Папка и все вложения успешно удалены"}, status=status.HTTP_200_OK)
 
 
+# views.py
 class RootFoldersAPIView(APIView):
     """
-    Получение всех папок верхнего уровня (parent = null)
+    Получение всей иерархии папок с файлами, начиная с root (parent=None)
     """
-    permission_classes = [IsAdminOrSuperUserRole]  # если нужно ограничение
+    permission_classes = [IsAdminOrSuperUserRole]  # или AllowAny, если нет ограничений
 
     def get(self, request):
         root_folders = Folder.objects.filter(parent__isnull=True)
         serializer = FolderSerializer(root_folders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
