@@ -54,13 +54,12 @@ PROJECT_APPS = [
 
 INSTALLED_APPS = DJANGO_LIBRARY + PROJECT_APPS
 
-# CORS_ORIGIN_ALLOW_ALL = True
-# CORS_ALLOW_ALL_ORIGINS = True
-# APPEND_SLASH = False
-# CORS_ALLOWED_ORIGINS = [
-#     "http://127.0.0.1:4040",
-#     "https://0f7211d007bc.ngrok-free.app",
-# ]
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_ALL_ORIGINS = True
+APPEND_SLASH = False
+CORS_ALLOWED_ORIGINS = [
+    "http://217.16.19.200",
+]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
