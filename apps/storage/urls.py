@@ -45,8 +45,8 @@ urlpatterns = [
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
 
 
-    path("api/v4/files/<uuid:pk>/update/", FileUpdateAPIView.as_view(), name="file-update"),
-    path("api/v4/files/<uuid:pk>/delete/", FileDeleteAPIView.as_view(), name="file-delete"),
-    path("api/v4/folders/<uuid:pk>/update/", FolderUpdateAPIView.as_view(), name="folder-update"),
-    path("api/v4/folders/<uuid:pk>/delete/", FolderDeleteAPIView.as_view(), name="folder-delete"),
+    path("files/<uuid:pk>/update/", FileUpdateAPIView.as_view(), name="file-update"),
+    path("files/<uuid:pk>/delete/", FileDeleteAPIView.as_view(), name="file-delete"),
+    path("folders/<uuid:pk>/update/", FolderUpdateAPIView.as_view(), name="folder-update"),
+    path("folders/<uuid:pk>/delete/", FolderDeleteAPIView.as_view(), name="folder-delete"),
 ]
