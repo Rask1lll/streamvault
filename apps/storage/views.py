@@ -365,12 +365,17 @@ class ChunkCompleteAPIView(APIView):
         session.is_complete = True
         session.save(update_fields=["is_complete"])
 
+        # 🔹 Сериализация файла
+        file_data = FileSerializer(file_obj).data
+
+        # 🔹 Итоговый ответ
         return JsonResponse({
             "message": "✅ Файл успешно загружен и сохранён",
             "file_id": str(file_obj.id),
             "file_type": file_type,
             "file_url": f"/media/{file_obj.file}",
-            "folder_id": str(folder.id) if folder else None
+            "folder_id": str(folder.id) if folder else None,
+            "file": file_data,  # 🔥 добавлено поле file
         })
 
 
