@@ -383,17 +383,27 @@ class ChunkCompleteAPIView(APIView):
 # 🔹 Просмотр файла по токену
 # ==============================
 class FileViewByTokenAPIView(APIView):
-
     """Просмотр файла по токену"""
+
     def get(self, request, token):
         try:
             file = File.objects.get(token=token)
         except File.DoesNotExist:
             return Response({'error': 'File not found'}, status=404)
 
+        # Проверяем, был ли файл уже просмотрен
+        if file.viewed:
+            return Response({'error': 'This link has expired'}, status=403)
+
+        # Отмечаем файл как просмотренный
+        file.viewed = True
+        file.save(update_fields=['viewed'])
+
+        # Формируем ответ
         data = FileSerializer(file).data
         data['view_url'] = request.build_absolute_uri()
         data['download_url'] = request.build_absolute_uri(file.file.url if file.file else static('no_file.png'))
+
         return Response(data)
 
 

@@ -120,6 +120,7 @@ class File(models.Model):
     )
     file_type = models.CharField(max_length=10, choices=FILE_TYPES)
     size = models.BigIntegerField(null=True, blank=True)
+    viewed = models.BooleanField(default=False)  # 👈 добавляем флаг "уже просмотрен"
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
