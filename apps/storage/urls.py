@@ -3,7 +3,7 @@ from .views import (
     ChunkInitAPIView, ChunkUploadAPIView, ChunkCompleteAPIView, FolderCreateAPIView, FolderUpdateAPIView,
     FolderViewByTokenAPIView, FileViewByTokenAPIView, FileReplaceAPIView, QRCodeAPIView,
     FileStreamAPIView, FileMoveAPIView, RegisterView, LoginView, UserDetailView, FileUpdateAPIView,
-    FileDeleteAPIView, FolderDeleteAPIView, RootFoldersAPIView
+    FileDeleteAPIView, FolderDeleteAPIView, RootFoldersAPIView, FolderSearchAPIView, FilePreviewAPIView
 )
 
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
@@ -16,7 +16,7 @@ urlpatterns = [
     path("api/v3/chunk_init/", ChunkInitAPIView.as_view(), name="chunk-init"),
     path("api/v3/chunk_upload/", ChunkUploadAPIView.as_view(), name="chunk-upload"),
     path("api/v3/chunk_complete/", ChunkCompleteAPIView.as_view(), name="chunk-complete"),
-
+    path("api/v3/folders_search/", FolderSearchAPIView.as_view(), name="folder-search"),    # 3
 
     # Folders
     path("api/v3/folders/", FolderCreateAPIView.as_view(), name="folder-create"),
@@ -25,7 +25,8 @@ urlpatterns = [
 
     # Files
     path("api/v3/files/<str:token>/", FileViewByTokenAPIView.as_view(), name="file-view"),
-    path("api/v3/files/replace/<int:pk>/", FileReplaceAPIView.as_view(), name="file-replace"),
+    path("api/v3/files_replace/<uuid:pk>/", FileReplaceAPIView.as_view(), name="file-replace"),  # 1
+    path('api/v3/files_preview/<str:token>/', FilePreviewAPIView.as_view(), name='file-preview'),  # 2
 
     # QR
     path("api/v3/qr/<str:token>/", QRCodeAPIView.as_view(), name="generate-qr"),

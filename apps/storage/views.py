@@ -18,6 +18,7 @@ from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+from pdf2image import convert_from_path
 
 
 User = get_user_model()
@@ -413,24 +414,35 @@ class FileViewByTokenAPIView(APIView):
 class FileReplaceAPIView(APIView):
     permission_classes = [IsAdminOrSuperUserRole]
 
-    """Заменяет файл, не трогая токен"""
+    """
+    Заменяет существующий файл, не трогая токен (UUID в URL)
+    Пример запроса:
+    PUT /api/v3/files/replace/<uuid:pk>/
+    Content-Type: multipart/form-data
+    file=<новый_файл>
+    """
+
     def put(self, request, pk):
         try:
             file = File.objects.get(pk=pk)
         except File.DoesNotExist:
-            return Response({'error': 'File not found'}, status=404)
+            return Response({'error': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
 
         new_file = request.FILES.get('file')
         if not new_file:
-            return Response({'error': 'No file provided'}, status=400)
+            return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
 
-        file.file.delete(save=False)
+        # Удаляем старый файл с диска
+        if file.file:
+            file.file.delete(save=False)
+
+        # Обновляем поля
         file.file = new_file
         file.name = new_file.name
         file.size = getattr(new_file, "size", None)
         file.save()
 
-        return Response(FileSerializer(file).data)
+        return Response(FileSerializer(file).data, status=status.HTTP_200_OK)
 
 
 class FileStreamAPIView(APIView):
@@ -498,6 +510,51 @@ class FileDeleteAPIView(APIView):
         return Response({"message": "Файл успешно удалён"}, status=status.HTTP_200_OK)
 
 
+class FilePreviewAPIView(APIView):
+    """
+    Конвертирует все страницы PDF-файла в PNG и возвращает ссылки на них
+    """
+    def get(self, request, token):
+        try:
+            file = File.objects.get(token=token)
+        except File.DoesNotExist:
+            return Response({'error': 'File not found'}, status=404)
+
+        if not file.file.name.lower().endswith('.pdf'):
+            return Response({'error': 'File is not PDF'}, status=400)
+
+        pdf_path = file.file.path
+        preview_dir = os.path.join(settings.MEDIA_ROOT, 'previews')
+        os.makedirs(preview_dir, exist_ok=True)
+
+        # Формируем имена PNG для каждой страницы
+        preview_urls = []
+
+        try:
+            # Конвертируем все страницы PDF
+            images = convert_from_path(pdf_path, dpi=200)
+            for i, image in enumerate(images, start=1):
+                preview_name = f"{file.token}_page_{i}.png"
+                preview_path = os.path.join(preview_dir, preview_name)
+
+                # Если не существует — сохраняем
+                if not os.path.exists(preview_path):
+                    image.save(preview_path, 'PNG')
+
+                # Добавляем ссылку
+                preview_url = request.build_absolute_uri(
+                    os.path.join(settings.MEDIA_URL, 'previews', preview_name)
+                )
+                preview_urls.append(preview_url)
+        except Exception as e:
+            return Response({'error': f'Ошибка конвертации: {str(e)}'}, status=500)
+
+        data = FileSerializer(file).data
+        data['view_urls'] = preview_urls  # 👈 список всех страниц
+
+        return Response(data)
+
+
 # 🔹 Удаление папки вместе со всеми файлами и под-папками
 class FolderDeleteAPIView(APIView):
     permission_classes = [IsAdminOrSuperUserRole]
@@ -519,6 +576,39 @@ class FolderDeleteAPIView(APIView):
 
         delete_folder_recursive(folder)
         return Response({"message": "Папка и все вложения успешно удалены"}, status=status.HTTP_200_OK)
+
+
+class FolderSearchAPIView(APIView):
+    """
+    Поиск папок по названию (частичное совпадение)
+    Пример запроса:
+    POST /api/v3/folders_search/
+    {
+        "name": "муз"
+    }
+    """
+    permission_classes = [IsAdminOrSuperUserRole]
+
+    def post(self, request):
+        folder_name = request.data.get("name", "").strip()
+
+        if not folder_name:
+            return Response(
+                {"error": "Поле 'name' обязательно"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Поиск по неполному названию (регистронезависимо)
+        folders = Folder.objects.filter(name__icontains=folder_name)
+
+        if not folders.exists():
+            return Response(
+                {"message": "Папки не найдены"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = FolderSerializer(folders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 # views.py
