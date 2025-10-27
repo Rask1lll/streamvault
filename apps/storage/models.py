@@ -105,6 +105,7 @@ class File(models.Model):
         ('audio', 'audio'),
         ('video', 'video'),
         ('document', 'document'),
+        ('image', 'image'),
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

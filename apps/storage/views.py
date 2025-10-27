@@ -436,6 +436,8 @@ class FileReplaceAPIView(APIView):
             file_type = 'video'
         elif ext in ['.pdf', '.doc', '.docx', '.txt', '.xls', '.xlsx']:
             file_type = 'document'
+        elif ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']:
+            file_type = 'image'
         else:
             file_type = 'document'  # по умолчанию документ
 
