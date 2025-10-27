@@ -384,7 +384,7 @@ class ChunkCompleteAPIView(APIView):
 # 🔹 Просмотр файла по токену
 # ==============================
 class FileViewByTokenAPIView(APIView):
-    """Просмотр файла по токену"""
+    """Просмотр файла по токену (без логики одноразового просмотра)"""
 
     def get(self, request, token):
         try:
@@ -392,20 +392,12 @@ class FileViewByTokenAPIView(APIView):
         except File.DoesNotExist:
             return Response({'error': 'File not found'}, status=404)
 
-        # Проверяем, был ли файл уже просмотрен
-        if file.viewed:
-            return Response({'error': 'This link has expired'}, status=403)
-
-        # Отмечаем файл как просмотренный
-        file.viewed = True
-        file.save(update_fields=['viewed'])
-
-        # Формируем ответ
+        # Просто возвращаем данные без проверки viewed
         data = FileSerializer(file).data
         data['view_url'] = request.build_absolute_uri()
         data['download_url'] = request.build_absolute_uri(file.file.url if file.file else static('no_file.png'))
 
-        return Response(data)
+        return Response(data, status=200)
 
 
 # ==============================
@@ -417,7 +409,7 @@ class FileReplaceAPIView(APIView):
     """
     Заменяет существующий файл, не трогая токен (UUID в URL)
     Пример запроса:
-    PUT /api/v3/files/replace/<uuid:pk>/
+    PUT /api/v3/files_replace/<uuid:pk>/
     Content-Type: multipart/form-data
     file=<новый_файл>
     """
@@ -436,10 +428,22 @@ class FileReplaceAPIView(APIView):
         if file.file:
             file.file.delete(save=False)
 
+        # Определяем тип файла по расширению
+        ext = os.path.splitext(new_file.name)[1].lower()
+        if ext in ['.mp3', '.wav', '.flac']:
+            file_type = 'audio'
+        elif ext in ['.mp4', '.avi', '.mov', '.mkv']:
+            file_type = 'video'
+        elif ext in ['.pdf', '.doc', '.docx', '.txt', '.xls', '.xlsx']:
+            file_type = 'document'
+        else:
+            file_type = 'document'  # по умолчанию документ
+
         # Обновляем поля
         file.file = new_file
         file.name = new_file.name
         file.size = getattr(new_file, "size", None)
+        file.file_type = file_type
         file.save()
 
         return Response(FileSerializer(file).data, status=status.HTTP_200_OK)
