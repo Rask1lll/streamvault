@@ -4,6 +4,8 @@ import os
 from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+import base64
+import secrets
 
 
 class CustomUserManager(BaseUserManager):
@@ -68,9 +70,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = "Пользователи"
 
 
-def generate_secure_token(length=32):
-    """Генерация криптографически стойкого токена"""
-    return secrets.token_urlsafe(length)
+def generate_secure_token(length=10):
+    """
+    Генерация короткого криптографически стойкого токена (≈12–14 символов)
+    """
+    # Берём случайные байты и кодируем в base64-url-safe формат
+    token = base64.urlsafe_b64encode(secrets.token_bytes(length)).decode('utf-8')
+    # Убираем '=' в конце, чтобы не удлинять
+    return token.rstrip('=')
 
 
 class Folder(models.Model):
